@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+		<link rel="stylesheet" type="text/css" href="design.css">
+		<title>Twitter Bot</title>
+	</head>
+	<body>
+		<form method="post" action="twitterBotActions.php" id="info">
+			<fieldset>
+				<legend>Informations</legend>
+			<div>
+				<label>
+					Login : 
+					<input type="text" name="login" placeholder="Twitter loggin" required autofocus>
+				</label>
+			</div>
+			
+			<div>
+				<label>
+					Password :  
+					<input type="password" name="pwd" placeholder="Twitter password">
+				</label>
+			</div>
+			
+			<div>
+				<label>
+					#Hashtah concerned : 
+					<input type="text" name="hashtag" placeholder="What HASHTAG do you want to follow ?">
+				</label>
+			</div>
+			
+			<div>
+				<label>
+					Website @ : 
+					<input type="text" name="url">
+				</label>
+			</div>
+			
+			<div>
+				<label>
+					<textarea rows="3" cols="30">Text to tweet ..</textarea>
+				</label>
+			</div>
+			</fieldset>
+		</form>
+	</body>
+</html>
