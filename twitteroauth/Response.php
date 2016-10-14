@@ -1,6 +1,5 @@
 <?php
 
-namespace Abraham\TwitterOAuth;
 
 /**
  * The result of the most recent API request.

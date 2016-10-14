@@ -4,9 +4,16 @@
  *
  * @license MIT
  */
-namespace Abraham\TwitterOAuth;
 
-use Abraham\TwitterOAuth\Util\JsonDecoder;
+require 'Util.php';
+require 'Config.php';
+require 'Response.php';
+require 'Request.php';
+require 'HmacSha1.php';
+require 'Consumer.php';
+require 'Token.php';
+require 'TwitterOAuthException.php';
+require 'Util/JsonDecoder.php';
 
 /**
  * TwitterOAuth class for interacting with the Twitter API.
@@ -16,10 +23,12 @@ use Abraham\TwitterOAuth\Util\JsonDecoder;
 class TwitterOAuth extends Config
 {
     const API_VERSION = '1.1';
-    const API_HOST = 'https://api.twitter.com';
+    const API_HOST = 'https://api.twitter.com/';
     const UPLOAD_HOST = 'https://upload.twitter.com';
     const UPLOAD_CHUNK = 40960; // 1024 * 40
 
+    /** @var Response details about the result of the last request as string */
+    private $responseString;
     /** @var Response details about the result of the last request */
     private $response;
     /** @var string|null Application bearer token */
@@ -94,11 +103,20 @@ class TwitterOAuth extends Config
     }
 
     /**
+     * Return the last response cache as string
+     */
+    public function getLastResponse()
+    {
+        return $this->responseString;
+    }
+
+    /**
      * Resets the last response cache.
      */
     public function resetLastResponse()
     {
         $this->response = new Response();
+        $this->responseString = "";
     }
 
     /**
@@ -126,16 +144,18 @@ class TwitterOAuth extends Config
      * @return array
      * @throws TwitterOAuthException
      */
-    public function oauth($path, array $parameters = array())
+    public function oauth($path, array $parameters = array(), $method='POST')
     {
         $response = array();
         $this->resetLastResponse();
         $this->response->setApiPath($path);
-        $url = sprintf('%s/%s', self::API_HOST, $path);
-        $result = $this->oAuthRequest($url, 'POST', $parameters);
+        $url = sprintf('%s/%s', self::API_HOST.self::API_VERSION, $path);
+        $result = $this->oAuthRequest($url, $method, $parameters);
 
         if ($this->getLastHttpCode() != 200) {
-            throw new TwitterOAuthException($result);
+            printf("Error %d", $this->getLastHttpCode());
+            print_r($result);
+            //throw new TwitterOAuthException($result);
         }
 
         parse_str($result, $response);
@@ -331,7 +351,9 @@ class TwitterOAuth extends Config
         } else {
             $authorization = 'Authorization: Bearer ' . $this->bearer;
         }
-        return $this->request($request->getNormalizedHttpUrl(), $method, $authorization, $parameters);
+        $this->responseString = $this->request($request->getNormalizedHttpUrl(), $method, $authorization, $parameters);
+
+        return $this->responseString;
     }
 
     /**
@@ -349,48 +371,48 @@ class TwitterOAuth extends Config
     {
         /* Curl settings */
         $options = array(
-            // CURLOPT_VERBOSE => true,
-            CURLOPT_CAINFO => __DIR__ . DIRECTORY_SEPARATOR . 'cacert.pem',
-            CURLOPT_CONNECTTIMEOUT => $this->connectionTimeout,
-            CURLOPT_HEADER => true,
-            CURLOPT_HTTPHEADER => array('Accept: application/json', $authorization, 'Expect:'),
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_SSL_VERIFYHOST => 2,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_TIMEOUT => $this->timeout,
-            CURLOPT_URL => $url,
-            CURLOPT_USERAGENT => $this->userAgent,
+            'CURLOPT_VERBOSE' => true,
+            'CURLOPT_CAINFO' => __DIR__ . DIRECTORY_SEPARATOR . 'cacert.pem',
+            'CURLOPT_CONNECTTIMEOUT' => $this->connectionTimeout,
+            'CURLOPT_HEADER' => true,
+            'CURLOPT_HTTPHEADER' => array('Accept: application/json', $authorization, 'Expect:'),
+            'CURLOPT_RETURNTRANSFER' => true,
+            'CURLOPT_SSL_VERIFYHOST' => 2,
+            'CURLOPT_SSL_VERIFYPEER' => true,
+            'CURLOPT_TIMEOUT' => $this->timeout,
+            'CURLOPT_URL' => $url,
+            'CURLOPT_USERAGENT' => $this->userAgent,
         );
 
         if($this->gzipEncoding) {
-            $options[CURLOPT_ENCODING] = 'gzip';
+            $options['CURLOPT_ENCODING'] = 'gzip';
         }
 
         if (!empty($this->proxy)) {
-            $options[CURLOPT_PROXY] = $this->proxy['CURLOPT_PROXY'];
-            $options[CURLOPT_PROXYUSERPWD] = $this->proxy['CURLOPT_PROXYUSERPWD'];
-            $options[CURLOPT_PROXYPORT] = $this->proxy['CURLOPT_PROXYPORT'];
-            $options[CURLOPT_PROXYAUTH] = CURLAUTH_BASIC;
-            $options[CURLOPT_PROXYTYPE] = CURLPROXY_HTTP;
+            $options['CURLOPT_PROXY'] = $this->proxy['CURLOPT_PROXY'];
+            $options['CURLOPT_PROXYUSERPWD'] = $this->proxy['CURLOPT_PROXYUSERPWD'];
+            $options['CURLOPT_PROXYPORT'] = $this->proxy['CURLOPT_PROXYPORT'];
+            $options['CURLOPT_PROXYAUTH'] = 'CURLAUTH_BASIC';
+            $options['CURLOPT_PROXYTYPE'] = 'CURLPROXY_HTTP';
         }
 
         switch ($method) {
             case 'GET':
                 break;
             case 'POST':
-                $options[CURLOPT_POST] = true;
-                $options[CURLOPT_POSTFIELDS] = Util::buildHttpQuery($postfields);
+                $options['CURLOPT_POST'] = true;
+                $options['CURLOPT_POSTFIELDS'] = Util::buildHttpQuery($postfields);
                 break;
             case 'DELETE':
-                $options[CURLOPT_CUSTOMREQUEST] = 'DELETE';
+                $options['CURLOPT_CUSTOMREQUEST'] = 'DELETE';
                 break;
             case 'PUT':
-                $options[CURLOPT_CUSTOMREQUEST] = 'PUT';
+                $options['CURLOPT_CUSTOMREQUEST'] = 'PUT';
                 break;
         }
 
         if (in_array($method, array('GET', 'PUT', 'DELETE')) && !empty($postfields)) {
-            $options[CURLOPT_URL] .= '?' . Util::buildHttpQuery($postfields);
+            $options['CURLOPT_URL'] .= '?' . Util::buildHttpQuery($postfields);
         }
 
 
@@ -400,6 +422,7 @@ class TwitterOAuth extends Config
 
         // Throw exceptions on cURL errors.
         if (curl_errno($curlHandle) > 0) {
+            printf("%d : %s", curl_errno($curlHandle), curl_error($curlHandle));
             throw new TwitterOAuthException(curl_error($curlHandle), curl_errno($curlHandle));
         }
 

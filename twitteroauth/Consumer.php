@@ -3,7 +3,6 @@
  * The MIT License
  * Copyright (c) 2007 Andy Smith
  */
-namespace Abraham\TwitterOAuth;
 
 class Consumer
 {
