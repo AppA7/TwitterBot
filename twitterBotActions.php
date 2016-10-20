@@ -16,19 +16,6 @@ $twitterInstance = new TwitterBotRunner(CONSUMER_KEY, CONSUMER_SECRET);
 // Setup token
 $twitterInstance->setToken(ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
 
-$twitterInstance->addReply(array('%22c%27est ouf%22 -RT'),'~c\'est ouf (.*)~i','dogbot');
-
-$twitterInstance->searchKeywordTweets("#drone");
-
-
-//$theSearch = array('q' => '#Paris', 'lang' => 'fr', 'count' => 100);
- 
-//$results = $connection->get('search/tweets', $theSearch);
-
-// Like and write status on each tweet in $results
-//foreach($results->statuses as $status)
-//{
-//$connection->post('favorites/create', ['id' => $status->id_str]);
-//}
+$twitterInstance->searchKeywordTweets("#guyane");
  
 ?>

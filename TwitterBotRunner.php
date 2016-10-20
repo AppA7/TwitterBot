@@ -28,7 +28,7 @@ class TwitterBotRunner{
     }
 
     public function addReply($terms,$regex,$type){
-        $this->replies = ['terms' => $terms,'regex' => $regex,'type' => $type];
+        $this->replies = array('terms' => $terms,'regex' => $regex,'type' => $type);
     }
 
     public function getSinceId($file='since_id'){
@@ -76,18 +76,17 @@ class TwitterBotRunner{
             /* find every tweet since last ID, or the maximum lasts tweets if no since_id */
             $request = sprintf($this->url_search, urlencode($keyword), $since_id);
 
-            $query = [
+            $query = array(
                 "q" => $keyword,
                 "count" => 50,
                 "result_type" => "recent",
+            	"exclude" => "retweets",
                 "lang" => "fr",
                 "since_id" => $since_id,
-            ];
+            );
             $search = $this->oauth->get("search/tweets", $query);
 
             if ($search) {
-                //echo 'Terms #'.$key.' : '.count($search->statuses).' found(s)'."\n<br>";
-                /* Store the last max ID */
                 if ($search->search_metadata->max_id_str > $max_id) {
                     $max_id = $search->search_metadata->max_id_str;
                 }
