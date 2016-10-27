@@ -31,17 +31,10 @@ $hashtag = $twitterInstance->styleHashtag($hashtag);
 
 $searchResults = $twitterInstance->searchKeywordTweets($hashtag);
 
-$twitterInstance->AddRepliesToSearch($twitterInstance, 'Hello World :-)');
+$reply = $responseList . ' ' . $shortUrl;
 
-
-//$theSearch = array('q' => '#Paris', 'lang' => 'fr', 'count' => 100);
-
-//$results = $connection->get('search/tweets', $theSearch);
-
-// Like and write status on each tweet in $results
-//foreach($results->statuses as $status)
-//{
-//$connection->post('favorites/create', ['id' => $status->id_str]);
-//}
+foreach ($searchResults->statuses as $tweet) {
+	$twitterInstance->AddRepliesToSearch($tweet, $reply);	
+}
 
 ?>

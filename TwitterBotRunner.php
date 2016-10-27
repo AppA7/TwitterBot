@@ -34,10 +34,11 @@ class TwitterBotRunner{
 
     public function getSinceId($file='since_id'){
         $since_id = @file_get_contents($file);
-        if(!$since_id){
-            $since_id = 0;
+        if($since_id){
+            printf("Since_ID = %d </br>", $since_id);
+        } else {
+        	$since_id = 0;
         }
-        printf("Since_ID = %d </br>", $since_id);
         return $since_id;
     }
 
@@ -97,10 +98,8 @@ class TwitterBotRunner{
                 foreach ($search->statuses as $tweet) {
                     echo '<b><a href="https://twitter.com/' . $tweet->user->screen_name . '" target="_blank" style="color:red">@' . $tweet->user->screen_name . '</a> :</b> <a href="https://twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id . '" target="_blank" style="color:black;text-decoration:none">' . $tweet->text . '</a></b><br>';
 
-                    echo '<b>Username:</b>'. $tweet->user->screen-name;
-
+                    echo '<b>Username:</b>'. $tweet->user->screen_name;
                 }
-                //echo 'Terms #'.$key.' : '.$i.' valid(s)'."\n<br>";
             }
 
             /* setting new max id */
@@ -110,10 +109,12 @@ class TwitterBotRunner{
         }
     }
 
-    public function AddRepliesToSearch($findedTweet, $messageToTweet)
-    {
-
-
+    public function AddRepliesToSearch($tweet, $reply) {
+	    try{
+			$this->oauth->post('statuses/update', array('status' => '@' . $tweet->user->screen_name . ' ' . $reply,'in_reply_to_status_id' => $tweet->id));
+	    }catch(OAuthException $ex){
+	        echo 'ERROR: '.$ex->lastResponse;
+	    }
     }
 
     public function shortenUrl($url, $bitly_login, $bitly_key)
