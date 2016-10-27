@@ -371,48 +371,48 @@ class TwitterOAuth extends Config
     {
         /* Curl settings */
         $options = array(
-            'CURLOPT_VERBOSE' => true,
-            'CURLOPT_CAINFO' => __DIR__ . DIRECTORY_SEPARATOR . 'cacert.pem',
-            'CURLOPT_CONNECTTIMEOUT' => $this->connectionTimeout,
-            'CURLOPT_HEADER' => true,
-            'CURLOPT_HTTPHEADER' => array('Accept: application/json', $authorization, 'Expect:'),
-            'CURLOPT_RETURNTRANSFER' => true,
-            'CURLOPT_SSL_VERIFYHOST' => 2,
-            'CURLOPT_SSL_VERIFYPEER' => true,
-            'CURLOPT_TIMEOUT' => $this->timeout,
-            'CURLOPT_URL' => $url,
-            'CURLOPT_USERAGENT' => $this->userAgent,
+            CURLOPT_VERBOSE => true,
+            CURLOPT_CAINFO => __DIR__ . DIRECTORY_SEPARATOR . 'cacert.pem',
+            CURLOPT_CONNECTTIMEOUT => $this->connectionTimeout,
+            CURLOPT_HEADER => true,
+            CURLOPT_HTTPHEADER => array('Accept: application/json', $authorization, 'Expect:'),
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_TIMEOUT => $this->timeout,
+            CURLOPT_URL => $url,
+            CURLOPT_USERAGENT => $this->userAgent,
         );
 
         if($this->gzipEncoding) {
-            $options['CURLOPT_ENCODING'] = 'gzip';
+            $options[CURLOPT_ENCODING] = 'gzip';
         }
 
         if (!empty($this->proxy)) {
-            $options['CURLOPT_PROXY'] = $this->proxy['CURLOPT_PROXY'];
-            $options['CURLOPT_PROXYUSERPWD'] = $this->proxy['CURLOPT_PROXYUSERPWD'];
-            $options['CURLOPT_PROXYPORT'] = $this->proxy['CURLOPT_PROXYPORT'];
-            $options['CURLOPT_PROXYAUTH'] = 'CURLAUTH_BASIC';
-            $options['CURLOPT_PROXYTYPE'] = 'CURLPROXY_HTTP';
+            $options[CURLOPT_PROXY] = $this->proxy[CURLOPT_PROXY];
+            $options[CURLOPT_PROXYUSERPWD] = $this->proxy[CURLOPT_PROXYUSERPWD];
+            $options[CURLOPT_PROXYPORT] = $this->proxy[CURLOPT_PROXYPORT];
+            $options[CURLOPT_PROXYAUTH] = CURLAUTH_BASIC;
+            $options[CURLOPT_PROXYTYPE] = CURLPROXY_HTTP;
         }
 
         switch ($method) {
             case 'GET':
                 break;
             case 'POST':
-                $options['CURLOPT_POST'] = true;
-                $options['CURLOPT_POSTFIELDS'] = Util::buildHttpQuery($postfields);
+                $options[CURLOPT_POST] = true;
+                $options[CURLOPT_POSTFIELDS] = Util::buildHttpQuery($postfields);
                 break;
             case 'DELETE':
-                $options['CURLOPT_CUSTOMREQUEST'] = 'DELETE';
+                $options[CURLOPT_CUSTOMREQUEST] = 'DELETE';
                 break;
             case 'PUT':
-                $options['CURLOPT_CUSTOMREQUEST'] = 'PUT';
+                $options[CURLOPT_CUSTOMREQUEST] = 'PUT';
                 break;
         }
 
         if (in_array($method, array('GET', 'PUT', 'DELETE')) && !empty($postfields)) {
-            $options['CURLOPT_URL'] .= '?' . Util::buildHttpQuery($postfields);
+            $options[CURLOPT_URL] .= '?' . Util::buildHttpQuery($postfields);
         }
 
 

@@ -5,6 +5,7 @@
  * Date: 13/10/2016
  * Time: 11:38
  */
+require 'twitteroauth/TwitterOAuth.php';
 
 class TwitterBotRunner{
 
@@ -81,6 +82,7 @@ class TwitterBotRunner{
                 "count" => 50,
                 "result_type" => "recent",
                 "lang" => "fr",
+                "exclude" => "retweets",
                 "since_id" => $since_id,
             ];
             $search = $this->oauth->get("search/tweets", $query);
@@ -101,41 +103,103 @@ class TwitterBotRunner{
 
             /* setting new max id */
             $this->setSinceId($max_id);
+
+            return $search;
         }
     }
-    public function run(){
-        echo '========= ', date('Y-m-d g:i:s A'), ' - Started ========='."\n<br>";
-        $since_id = $this->getSinceId();
 
-        $max_id = $since_id;
-
-        if ($this->verifyAccountWorks()){
-            echo '## Account verified :-) </br>';
-            /* For each request on tweet.php */
-            foreach ($this->replies as $key => $t){
-                print_r($this->replies, true);
-                /* find every tweet since last ID, or the maximum lasts tweets if no since_id */
-                //$this->oauth->oauth(sprintf($this->url_search, urlencode($t['terms'][0]), $since_id));
-                $search = 0;//json_decode($this->oauth->getLastResponse());
-                if($search){
-                    //echo 'Terms #'.$key.' : '.count($search->statuses).' found(s)'."\n<br>";
-                    /* Store the last max ID */
-                    if ($search->search_metadata->max_id_str > $max_id){
-                        $max_id = $search->search_metadata->max_id_str;
-                    }
-
-                    $i = 0;
-                    foreach ($search->statuses as $tweet){
-                        echo '<b><a href="https://twitter.com/'.$tweet->user->screen_name.'" target="_blank" style="color:red">@'.$tweet->user->screen_name.'</a> :</b> <a href="https://twitter.com/'.$tweet->user->screen_name.'/status/'.$tweet->id.'" target="_blank" style="color:black;text-decoration:none">'.$tweet->text.'</a></b><br>';
-                    }
-                    //echo 'Terms #'.$key.' : '.$i.' valid(s)'."\n<br>";
-                }
+    public function AddRepliesToSearch($findedTweet, $messageToTweet)
+    {
+        foreach ($findedTweet->statuses as $tweet){
+            /* If you are the author of the tweet, we ignore it */
+            if ($tweet->user->screen_name == $this->screenName){
+                continue;
+            }
+            /* if tweet is a quote (like a RT), we ignore it */
+            if($tweet->is_quote_status){
+                continue;
             }
 
-            /* setting new max id */
-            $this->setSinceId($max_id);
-            echo '========= ', date('Y-m-d g:i:s A'), ' - Finished ========='."\n<br>";;
+            $pass = false;
+
+            switch($t['type']){
+                case('dogbot'):
+                    //echo '<b><a href="https://twitter.com/'.$tweet->user->screen_name.'" target="_blank" style="color:red">@'.$tweet->user->screen_name.'</a> :</b> <a href="https://twitter.com/'.$tweet->user->screen_name.'/status/'.$tweet->id.'" target="_blank" style="color:black;text-decoration:none">'.$tweet->text.'</a></b><br>';
+
+                    $t['word'] = null; /* initialisation variable mot additionnel */
+
+                    /* if the regex specified found something, we try to get the content */
+                    if(preg_match($t['regex'], $tweet->text, $content)){
+                        /* get the longest word after keyword */
+                        $words = explode(' ',$content[1]);
+                        $maxword = null;$maxlength = 0;
+                        foreach($words as $w){
+                            $wlength = strlen($w);
+                            if($wlength >= $maxlength){
+                                $maxword = $w;
+                                $maxlength = $wlength;
+                            }
+                        }
+                        if($maxword){
+                            $t['word'] = $maxword;
+                        }
+                    }
+
+                    $pass = true;
+                    $i++;
+                    break;
+                default:
+                    echo 'ERROR: NO TYPE DEFINED';
+                    break;
+            }
+
+            if($pass){
+                $this->sendReply($tweet, $t);
+                /* wait 100ms */
+                usleep(100000);
+            }
         }
+        $length = strlen($messageToTweet);
+
+        // We should trim down the title if it's too long
+        // So that our tweets are 120 characters or less
+        if (strlen($title) > 120-$length)
+            $shorttitle = substr($title, 0, 117-$length) . "...";
+        else
+            $shorttitle = $title;
+
+        // Add the title to the message
+        $message = $shorttitle.$message;
+
+        // Post the message to Twitter
+        $oauth->OAuthRequest('https://twitter.com/statuses/update.xml',
+            array('status' => $message), 'POST');
+        // Wait a couple of mintes before the next tweet
+        // Don't try and flood Twitter
+        // Only 150 API calls per hour, use them wisely.
+        sleep(rand(60,120));
+    }
+
+    public function shortenUrl($url, $bitly_login, $bitly_key)
+    {
+        // Check is url contains http:// header
+        if (strpos($url, 'http://') !== true || strpos($url, 'https://') !== true ) {
+            $url = 'http://'.$url;
+        }
+
+        $url_escaped = urlencode($url);
+        $bitly_url = "http://api.bit.ly/shorten?version=2.0.1";
+        $bitly_url .= "&longUrl=$url_escaped";
+        $bitly_url .= "&login=$bitly_login&apiKey=$bitly_key";
+
+        $shortened_url = json_decode(file_get_contents($bitly_url));
+
+        if ($shortened_url->errorCode == 0) {
+            // Retrieve the shortened url from the json object
+            foreach ($shortened_url->results as $key => $value)
+                $shorturl = $value->shortUrl;
+        }
+            return $shorturl;
     }
 }
 
