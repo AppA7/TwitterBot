@@ -18,8 +18,6 @@ $hashtag = $_POST['hashtag'];
 $website = $_POST['url'];
 $responseList = $_POST['responsesList'];
 
-
-
 // Create new instance of twitter bot
 $twitterInstance = new TwitterBotRunner(CONSUMER_KEY, CONSUMER_SECRET);
 
@@ -29,13 +27,15 @@ $shortUrl = $twitterInstance->shortenUrl($website, BITLY_LOGIN, BITLY_KEY);
 // Setup twetter token
 $twitterInstance->setToken(ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
 
-<<<<<<< HEAD
+$hashtag = $twitterInstance->styleHashtag($hashtag);
 
-$twitterInstance->searchKeywordTweets($hashtag);
+$searchResults = $twitterInstance->searchKeywordTweets($hashtag);
+
+$twitterInstance->AddRepliesToSearch($twitterInstance, 'Hello World :-)');
 
 
 //$theSearch = array('q' => '#Paris', 'lang' => 'fr', 'count' => 100);
- 
+
 //$results = $connection->get('search/tweets', $theSearch);
 
 // Like and write status on each tweet in $results
@@ -44,9 +44,4 @@ $twitterInstance->searchKeywordTweets($hashtag);
 //$connection->post('favorites/create', ['id' => $status->id_str]);
 //}
 
-
-=======
-$twitterInstance->searchKeywordTweets("#guyane");
->>>>>>> origin/master
- 
 ?>

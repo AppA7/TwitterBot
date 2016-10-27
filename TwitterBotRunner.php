@@ -96,6 +96,9 @@ class TwitterBotRunner{
                 $i = 0;
                 foreach ($search->statuses as $tweet) {
                     echo '<b><a href="https://twitter.com/' . $tweet->user->screen_name . '" target="_blank" style="color:red">@' . $tweet->user->screen_name . '</a> :</b> <a href="https://twitter.com/' . $tweet->user->screen_name . '/status/' . $tweet->id . '" target="_blank" style="color:black;text-decoration:none">' . $tweet->text . '</a></b><br>';
+
+                    echo '<b>Username:</b>'. $tweet->user->screen-name;
+
                 }
                 //echo 'Terms #'.$key.' : '.$i.' valid(s)'."\n<br>";
             }
@@ -109,80 +112,15 @@ class TwitterBotRunner{
 
     public function AddRepliesToSearch($findedTweet, $messageToTweet)
     {
-        foreach ($findedTweet->statuses as $tweet){
-            /* If you are the author of the tweet, we ignore it */
-            if ($tweet->user->screen_name == $this->screenName){
-                continue;
-            }
-            /* if tweet is a quote (like a RT), we ignore it */
-            if($tweet->is_quote_status){
-                continue;
-            }
 
-            $pass = false;
 
-            switch($t['type']){
-                case('dogbot'):
-                    //echo '<b><a href="https://twitter.com/'.$tweet->user->screen_name.'" target="_blank" style="color:red">@'.$tweet->user->screen_name.'</a> :</b> <a href="https://twitter.com/'.$tweet->user->screen_name.'/status/'.$tweet->id.'" target="_blank" style="color:black;text-decoration:none">'.$tweet->text.'</a></b><br>';
-
-                    $t['word'] = null; /* initialisation variable mot additionnel */
-
-                    /* if the regex specified found something, we try to get the content */
-                    if(preg_match($t['regex'], $tweet->text, $content)){
-                        /* get the longest word after keyword */
-                        $words = explode(' ',$content[1]);
-                        $maxword = null;$maxlength = 0;
-                        foreach($words as $w){
-                            $wlength = strlen($w);
-                            if($wlength >= $maxlength){
-                                $maxword = $w;
-                                $maxlength = $wlength;
-                            }
-                        }
-                        if($maxword){
-                            $t['word'] = $maxword;
-                        }
-                    }
-
-                    $pass = true;
-                    $i++;
-                    break;
-                default:
-                    echo 'ERROR: NO TYPE DEFINED';
-                    break;
-            }
-
-            if($pass){
-                $this->sendReply($tweet, $t);
-                /* wait 100ms */
-                usleep(100000);
-            }
-        }
-        $length = strlen($messageToTweet);
-
-        // We should trim down the title if it's too long
-        // So that our tweets are 120 characters or less
-        if (strlen($title) > 120-$length)
-            $shorttitle = substr($title, 0, 117-$length) . "...";
-        else
-            $shorttitle = $title;
-
-        // Add the title to the message
-        $message = $shorttitle.$message;
-
-        // Post the message to Twitter
-        $oauth->OAuthRequest('https://twitter.com/statuses/update.xml',
-            array('status' => $message), 'POST');
-        // Wait a couple of mintes before the next tweet
-        // Don't try and flood Twitter
-        // Only 150 API calls per hour, use them wisely.
-        sleep(rand(60,120));
     }
 
     public function shortenUrl($url, $bitly_login, $bitly_key)
     {
         // Check is url contains http:// header
-        if (strpos($url, 'http://') !== true || strpos($url, 'https://') !== true ) {
+        if((strpos($url, 'http://') === false && strpos($url, 'https://') === false))
+        {
             $url = 'http://'.$url;
         }
 
@@ -200,82 +138,14 @@ class TwitterBotRunner{
         }
             return $shorturl;
     }
-}
 
-
-
-
-
-
-
-
-
-
-
-/*
-$connection = new TwitterOAuth(CONSUMER_KEY, CONSUMER_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
-
-$theSearch = array('q' => '#Paris', 'lang' => 'fr', 'count' => 5);
-
-
-// Store the feed settings into $feed
-$feed = $feeds[$feed_name];
-
-// Fetch the feed and store the prefix
-$rss = fetch_rss($feed[
-}"url"]);
-$postfix = $feed["postfix"];
-
-// Loop through the feed items
-foreach ($rss->items as $item)
-{
-    // All simple enough here
-    $title = trim($item["title"]);
-    $url = $item["link"];
-
-    // Let's make sure our feeds are in English, allow spaces and punctuation
-    if (ereg('^[[:alnum:][:blank:][:punct:]]+$', $title))
+    public function styleHashtag($hashtag)
     {
-        // Escape the URL for bit.ly shortening and then shorten the link
-        // This is the place where you have to use your bit.ly login
-        // And the API key
-        $url_escaped = urlencode($url);
-        $bitly_url = "http://api.bit.ly/shorten?version=2.0.1";
-        $bitly_url .= "&longUrl=$url_escaped";
-        $bitly_url .= "&login=$bitly_login&apiKey=$bitly_key";
-
-        $shortened_url = json_decode(file_get_contents($bitly_url));
-
-        // If everything went okay, go on
-        if ($shortened_url->errorCode == 0)
-        {
-            // Retrieve the shortened url from the json object
-            foreach ($shortened_url->results as $key => $value)
-                $shorturl = $value->shortUrl;
-
-            // Form a new message from the short URL and the postfix
-            $message = " $shorturl $postfix";
-            $length = strlen($message);
-
-            // We should trim down the title if it's too long
-            // So that our tweets are 120 characters or less
-            if (strlen($title) > 120-$length)
-                $shorttitle = substr($title, 0, 117-$length) . "...";
-            else
-                $shorttitle = $title;
-
-            // Add the title to the message
-            $message = $shorttitle.$message;
-
-            // Post the message to Twitter
-            $oauth->OAuthRequest('https://twitter.com/statuses/update.xml',
-                array('status' => $message), 'POST');
-
-            // Wait a couple of mintes before the next tweet
-            // Don't try and flood Twitter, remember, you have
-            // Only 150 API calls per hour, use them wisely.
-            sleep(rand(60,120));
+        // Check is hashtag contains # sympbol or not
+        if (strpos($hashtag, '#') === false) {
+            $hashtag = '#'.$hashtag;
         }
+
+        return $hashtag;
     }
 }
-*/
