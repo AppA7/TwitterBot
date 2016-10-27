@@ -15,7 +15,7 @@ class Util
     {
         $output = '';
         if (is_array($input)) {
-            $output = array_map([__NAMESPACE__ . '\Util', 'urlencodeRfc3986'], $input);
+            $output = array_map(array(__NAMESPACE__ . '\Util', 'urlencodeRfc3986'), $input);
         } elseif (is_scalar($input)) {
             $output = rawurlencode($input);
         }
@@ -44,12 +44,12 @@ class Util
     public static function parseParameters($input)
     {
         if (!is_string($input)) {
-            return [];
+            return array();
         }
 
         $pairs = explode('&', $input);
 
-        $parameters = [];
+        $parameters = array();
         foreach ($pairs as $pair) {
             $split = explode('=', $pair, 2);
             $parameter = Util::urldecodeRfc3986($split[0]);
@@ -62,7 +62,7 @@ class Util
                 if (is_scalar($parameters[$parameter])) {
                     // This is the first duplicate, so transform scalar (string) into an array
                     // so we can add the duplicates
-                    $parameters[$parameter] = [$parameters[$parameter]];
+                    $parameters[$parameter] = array($parameters[$parameter]);
                 }
 
                 $parameters[$parameter][] = $value;
@@ -93,7 +93,7 @@ class Util
         // Ref: Spec: 9.1.1 (1)
         uksort($params, 'strcmp');
 
-        $pairs = [];
+        $pairs = array();
         foreach ($params as $parameter => $value) {
             if (is_array($value)) {
                 // If two or more parameters share the same name, they are sorted by their value

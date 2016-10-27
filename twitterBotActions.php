@@ -29,6 +29,7 @@ $shortUrl = $twitterInstance->shortenUrl($website, BITLY_LOGIN, BITLY_KEY);
 // Setup twetter token
 $twitterInstance->setToken(ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
 
+<<<<<<< HEAD
 
 $twitterInstance->searchKeywordTweets($hashtag);
 
@@ -44,5 +45,8 @@ $twitterInstance->searchKeywordTweets($hashtag);
 //}
 
 
+=======
+$twitterInstance->searchKeywordTweets("#guyane");
+>>>>>>> origin/master
  
 ?>
